@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>To Do</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="header-row">
+      <h1>To Do</h1>
+      <button type="button" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </div>
+    <form id="add-form">
+      <input type="text" id="task-input" placeholder="What needs doing? (press / to focus)" autocomplete="off">
+      <input type="date" id="due-date-input">
+      <select id="priority-input">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+      <button type="submit">Add</button>
+    </form>
+    <div class="filter-row">
+      <input type="text" id="search-input" placeholder="Search tasks..." autocomplete="off">
+    </div>
+    <div class="filter-row">
+      <div id="filters">
+        <button type="button" class="filter-btn active" data-filter="all">All</button>
+        <button type="button" class="filter-btn" data-filter="active">Active</button>
+        <button type="button" class="filter-btn" data-filter="completed">Completed</button>
+      </div>
+      <button type="button" id="clear-completed">Clear completed</button>
+    </div>
+    <ul id="task-list"></ul>
+    <p id="count"></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
