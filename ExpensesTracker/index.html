@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://tessdata.projectnaptha.com data: blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Expenses Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Expenses Tracker</h1>
+      <p>Upload a receipt and the amount, date, category and payment method are filled in for you.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="addManual" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add manually</button>
+      <button class="btn" id="exportCsv" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></svg>Export CSV</button>
+    </div>
+  </header>
+
+  <section class="drop" id="drop">
+    <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h3"/></svg></div>
+    <div class="txt">
+      <strong>Scan a receipt</strong>
+      <span id="dropHint">Photo, screenshot or PDF (JPG, PNG, WebP, PDF). You can also drop the file here.</span>
+    </div>
+    <label class="btn primary upload" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5l5 5M4 16v4h16v-4"/></svg>Upload receipt</label>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" hidden>
+  </section>
+
+  <section class="summary" id="summary"></section>
+
+  <section class="panel pie-panel" aria-labelledby="pieTitle">
+    <div class="pie-chart">
+      <svg id="pieSvg" viewBox="0 0 200 200" role="img" aria-labelledby="pieTitle"></svg>
+      <div class="pie-center" id="pieCenter" aria-hidden="true"></div>
+    </div>
+    <div class="pie-side">
+      <div class="panel-head" style="margin-bottom:4px"><div><h2 id="pieTitle">Where the money went</h2><span class="label" id="piePeriod"></span></div></div>
+      <div class="pie-legend" id="pieLegend"></div>
+      <p class="note" style="margin:6px 0 0">Tap a slice or row to filter the list by that category.</p>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Expenses</h2>
+        <div class="filters">
+          <select id="fMonth" aria-label="Filter by period"></select>
+          <span class="range" id="rangeBox" hidden><input type="date" id="fFrom" aria-label="From date"><span class="note">to</span><input type="date" id="fTo" aria-label="To date"></span>
+          <select id="fCat" aria-label="Filter by category"></select>
+        </div>
+      </div>
+      <div id="exampleBanner" class="banner" hidden>These are example entries. Upload your first receipt to start your own list.</div>
+      <div class="list" id="list"></div>
+    </section>
+    <aside class="panel">
+      <div class="panel-head"><div><h2>Budget by category</h2><span class="label" id="catPeriod"></span></div><button class="btn small" type="button" data-editbudget>Edit budgets</button></div>
+      <div class="cats" id="cats"></div>
+    </aside>
+  </div>
+  <p class="note" id="storeNote"></p>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="receipt-side">
+      <div id="imgBox"></div>
+      <div class="scan-state" id="scanState"></div>
+      <div id="itemsBox"></div>
+      <div id="ocrBox"></div>
+    </div>
+    <form class="form-side" id="form" novalidate>
+      <h2 id="mTitle">Review expense</h2>
+      <div class="form-grid">
+        <div class="field full"><label for="iMerchant">Merchant</label><input type="text" id="iMerchant" placeholder="e.g. Toast Box"></div>
+        <div class="field full"><label for="iAmount">Amount</label>
+          <div class="amtwrap"><select id="iCurrency" aria-label="Currency"></select><input type="number" id="iAmount" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div></div>
+        <div class="field"><label for="iDate">Date</label><input type="date" id="iDate"></div>
+        <div class="field"><label for="iCategory">Category</label><select id="iCategory"></select></div>
+        <div class="field"><label for="iPayment">Payment method</label><select id="iPayment"></select></div>
+        <div class="field"><label for="iNote">Note</label><input type="text" id="iNote" placeholder="Optional"></div>
+      </div>
+      <div id="confirmBox"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn danger ghost" id="delBtn" hidden>Delete</button>
+        <span></span>
+        <div class="actions">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn primary" id="saveBtn">Save expense</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="scrim" id="bScrim" hidden>
+  <form class="bmodal" id="bForm" role="dialog" aria-modal="true" aria-labelledby="bTitle" novalidate>
+    <div class="panel-head" style="margin:0"><h2 id="bTitle">Monthly budgets</h2><span class="label">SGD per month</span></div>
+    <p class="note" style="margin:0">Set how much you plan to spend in each category every month. Leave a category at 0 to skip it.</p>
+    <div class="bgrid" id="bGrid"></div>
+    <div class="btotal"><span>Total per month</span><span class="num" id="bTotal"></span></div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost" id="bSuggest">Use suggested budget (S$2,000)</button>
+      <div class="actions"><button type="button" class="btn" id="bCancel">Cancel</button><button type="submit" class="btn primary">Save budgets</button></div>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
